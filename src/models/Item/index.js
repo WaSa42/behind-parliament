@@ -2,7 +2,8 @@ import some from 'lodash/some';
 import PropTypes from 'prop-types';
 import moment from 'moment-timezone';
 
-import { config } from '..';
+import MongooseModel from "./mongoose";
+import { config } from '../../index';
 
 class Item {
   constructor(props) {
@@ -43,6 +44,33 @@ class Item {
       categories: PropTypes.arrayOf(PropTypes.oneOf(Item.CATEGORIES)),
     };
   }
+
+  // DATABASE
+
+  static findOne = args => {
+    return MongooseModel.findOne({ ...args }, (err, item) => err || item);
+  };
+
+  static find = args => {
+    return MongooseModel.find({ ...args }, (err, items) => err || items);
+  };
+
+  static save = items => {
+    let err = null;
+    items.forEach(item => {
+      MongooseModel.findOne({ ref: item.ref }, (e, found) => {
+        if (e) {
+          err = e;
+          return false;
+        }
+        if (!found) new MongooseModel(item).save();
+      });
+    });
+
+    return err || items;
+  };
+
+  // GETTERS
 
   getAbsolutePath() {
     return `http${config.ssl ? 's' : ''}://${config.hostname}'/feed/item/${this.id}`;

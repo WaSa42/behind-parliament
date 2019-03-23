@@ -1,11 +1,10 @@
 import schedule from 'node-schedule';
 import isArray from 'lodash/isArray';
-import xml2js from 'xml2js';
 import iconv  from 'iconv-lite';
+import fetch from 'node-fetch';
+import xml2js from 'xml2js';
 
 import Item from '../../models/Item';
-import buildApiRequest from '../buildApiRequest';
-import { saveItems } from '../../graphql/resolvers';
 
 const parser = new xml2js.Parser();
 
@@ -32,7 +31,10 @@ const prettifyData = (json = { items: [] }) => ({
 });
 
 const getItems = () => {
-  buildApiRequest('GET', 'https://www.senat.fr/rss/textes.rss')
+  fetch('https://www.senat.fr/rss/textes.rss', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  })
     .then(res => res.arrayBuffer())
     .then(arrayBuffer => iconv.decode(Buffer.from(arrayBuffer), 'iso-8859-1').toString())
     .then(xml => {
@@ -47,8 +49,10 @@ const getItems = () => {
       const items = json.rss.channel[0].item;
       const prettifiedData = prettifyData({ ...json, items });
 
-      saveItems(prettifiedData.items);
-    });
+      Item.save(prettifiedData.items);
+    })
+    .catch(error => console.error(`ERROR: ${error.message}`));
+
 };
 
 // Every day at 2AM
