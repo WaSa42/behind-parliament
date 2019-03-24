@@ -4,6 +4,8 @@ import moment from 'moment-timezone';
 
 import MongooseModel from "./mongoose";
 import { config } from '../../index';
+import fetch from "node-fetch";
+import iconv from "iconv-lite";
 
 class Item {
   constructor(props) {
@@ -47,11 +49,11 @@ class Item {
 
   // DATABASE
 
-  static findOne = args => {
+  static findOne = (obj, args) => {
     return MongooseModel.findOne({ ...args }, (err, item) => err || item);
   };
 
-  static find = args => {
+  static find = (obj, args) => {
     return MongooseModel.find({ ...args }, (err, items) => err || items);
   };
 
@@ -59,25 +61,25 @@ class Item {
     let err = null;
     items.forEach(item => {
       MongooseModel.findOne({ ref: item.ref }, (e, found) => {
-        if (e) {
-          err = e;
-          return false;
-        }
-        if (!found) new MongooseModel(item).save();
+        if (e) { err = e; }
+        else if (!found) new MongooseModel(item).save();
       });
     });
 
     return err || items;
   };
 
+  static getPDFDocument = (obj, args) => {
+    return args.link && fetch(args.link.replace('html', 'pdf'), { method: 'GET' })
+      .then(res => res.arrayBuffer())
+      .then(arrayBuffer => iconv.decode(Buffer.from(arrayBuffer), 'iso-8859-1').toString())
+      .catch(error => error.message);
+  };
+
   // GETTERS
 
   getAbsolutePath() {
     return `http${config.ssl ? 's' : ''}://${config.hostname}'/feed/item/${this.id}`;
-  }
-
-  getPDFDocument() {
-    return this.author === 'senate' ? this.link.replace('html', 'pdf') : false;
   }
 }
 

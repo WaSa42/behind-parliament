@@ -2,6 +2,7 @@ require('dotenv').config();
 
 import express from 'express';
 import mongoose from 'mongoose';
+import * as bodyParser from 'body-parser-graphql';
 import fs from 'fs';
 import https from 'https';
 import http from 'http';
@@ -37,6 +38,7 @@ mongoose.connect(config.database, { useNewUrlParser: true });
 const apollo = new ApolloServer({ typeDefs, resolvers });
 
 const app = express();
+app.use(bodyParser.graphql());
 apollo.applyMiddleware({ app });
 
 // Create the HTTPS or HTTP server, per configuration

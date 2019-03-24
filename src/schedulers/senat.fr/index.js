@@ -52,7 +52,6 @@ const getItems = () => {
       Item.save(prettifiedData.items);
     })
     .catch(error => console.error(`ERROR: ${error.message}`));
-
 };
 
 // Every day at 2AM

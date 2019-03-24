@@ -33,6 +33,7 @@ const typeDefs = gql`
   type Query {
     item(_id: ID!): Item
     items: [Item]
+    itemPDF(link: String!): String
   }
 `;
 

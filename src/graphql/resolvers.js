@@ -5,5 +5,6 @@ export const resolvers = {
   Query: {
     item: Item.findOne,
     items: Item.find,
+    itemPDF: Item.getPDFDocument,
   },
 };
